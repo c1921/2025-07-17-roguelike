@@ -32,15 +32,41 @@ const handleExecuteTurn = () => {
 // 选择技能奖励
 const handleSelectSkill = (skillId: string) => {
   selectSkillReward(skillId);
+  
+  // 自动进入下一层
+  handleNextFloor();
 };
 
 // 进入下一层
 const handleNextFloor = () => {
+  // 记录之前是否开启了自动战斗
+  const wasAutoBattleEnabled = autoBattleIntervalId.value !== null;
+  
+  // 确保清除之前的自动战斗定时器
+  if (autoBattleIntervalId.value) {
+    clearInterval(autoBattleIntervalId.value);
+    autoBattleIntervalId.value = null;
+  }
+  
   startNewFloor();
+  
+  // 如果之前开启了自动战斗，则自动开启新的自动战斗
+  if (wasAutoBattleEnabled) {
+    const interval = startAutoBattle();
+    if (interval) {
+      autoBattleIntervalId.value = interval;
+    }
+  }
 };
 
 // 开始新游戏
 const handleStartGame = () => {
+  // 确保清除之前的自动战斗定时器
+  if (autoBattleIntervalId.value) {
+    clearInterval(autoBattleIntervalId.value);
+    autoBattleIntervalId.value = null;
+  }
+  
   startGame();
 };
 
@@ -85,9 +111,9 @@ onUnmounted(() => {
             <button 
               @click="handleStartAutoBattle"
               class="btn join-item"
-              :class="autoBattleIntervalId ? 'btn-error' : 'btn-success'"
+              :class="autoBattleIntervalId !== null ? 'btn-error' : 'btn-success'"
             >
-              {{ autoBattleIntervalId ? '停止自动战斗' : '开始自动战斗' }}
+              {{ autoBattleIntervalId !== null ? '停止自动战斗' : '开始自动战斗' }}
             </button>
           </div>
         </div>

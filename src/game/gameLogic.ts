@@ -161,7 +161,7 @@ const startGame = () => {
 
 // 自动战斗
 const startAutoBattle = () => {
-  if (!gameState.isInBattle) return;
+  if (!gameState.isInBattle) return null;
   
   const interval = setInterval(() => {
     if (!gameState.isInBattle) {
