@@ -17,7 +17,8 @@ const gameState = reactive<GameState>({
         currentCooldown: 0,
         description: '一次基本攻击，造成10点伤害'
       }
-    ]
+    ],
+    lastUsedSkillIndex: -1 // 记录上一次使用的技能索引
   },
   currentEnemy: null,
   battleLogs: [],
@@ -51,6 +52,9 @@ const startNewFloor = () => {
     skill.currentCooldown = 0;
   });
   
+  // 重置上一次使用的技能索引
+  gameState.player.lastUsedSkillIndex = -1;
+  
   addBattleLog(`进入第 ${gameState.floor} 层，遇到了 ${gameState.currentEnemy.name}！`, 'system');
 };
 
@@ -61,8 +65,14 @@ const battleTick = () => {
   // 玩家回合
   let playerDealtDamage = false;
   
-  // 按顺序尝试释放技能
-  for (const skill of gameState.player.skills) {
+  // 循环使用技能，从上一次使用的技能的下一个开始
+  const skillsCount = gameState.player.skills.length;
+  let startIndex = (gameState.player.lastUsedSkillIndex! + 1) % skillsCount;
+  let currentIndex = startIndex;
+  
+  do {
+    const skill = gameState.player.skills[currentIndex];
+    
     if (skill.currentCooldown <= 0) {
       // 使用技能
       gameState.currentEnemy.hp -= skill.damage;
@@ -71,9 +81,15 @@ const battleTick = () => {
       // 设置冷却
       skill.currentCooldown = skill.cooldown;
       playerDealtDamage = true;
+      
+      // 更新上一次使用的技能索引
+      gameState.player.lastUsedSkillIndex = currentIndex;
       break;
     }
-  }
+    
+    // 尝试下一个技能
+    currentIndex = (currentIndex + 1) % skillsCount;
+  } while (currentIndex !== startIndex && !playerDealtDamage);
   
   // 如果没有技能可用，跳过回合
   if (!playerDealtDamage) {
@@ -144,6 +160,7 @@ const resetGame = () => {
       description: '一次基本攻击，造成10点伤害'
     }
   ];
+  gameState.player.lastUsedSkillIndex = -1; // 重置上一次使用的技能索引
   gameState.currentEnemy = null;
   gameState.battleLogs = [];
   gameState.floor = 0;

@@ -22,6 +22,7 @@ export interface Player {
   hp: number;
   maxHp: number;
   skills: Skill[];
+  lastUsedSkillIndex?: number; // 添加跟踪上一次使用技能的索引
 }
 
 export interface BattleLog {
