@@ -27,7 +27,7 @@ const getEffectClass = (effect: Effect): string => {
 <template>
   <div class="card card-bordered shadow-sm">
     <div class="card-body">
-      <p class="card-title">技能列表</p>
+      <p class="text-sm">技能列表</p>
       <div class="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
         <div 
           v-for="skill in skills" 
@@ -38,7 +38,7 @@ const getEffectClass = (effect: Effect): string => {
             'border-l-4 border-gray-300 opacity-75': skill.currentCooldown > 0 
           }"
         >
-          <div class="flex justify-between items-center mb-2">
+          <div class="flex justify-between items-center">
             <h3 class="text-base font-medium">{{ skill.name }}</h3>
             <div v-if="skill.cooldown > 0" class="badge badge-sm"
               :class="{
@@ -53,7 +53,7 @@ const getEffectClass = (effect: Effect): string => {
               </span>
             </div>
           </div>
-          <div class="flex flex-wrap gap-2 text-sm mb-1.5">
+          <div class="flex flex-wrap gap-2 text-sm">
             <div v-for="(effect, index) in skill.effects" :key="index" class="badge badge-sm">
               <span class="font-medium">{{ getEffectLabel(effect) }}</span> 
               <span :class="getEffectClass(effect)">{{ effect.value }}</span>

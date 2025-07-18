@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Skill, Effect } from '../types';
 
-const props = defineProps<{
+defineProps<{
   skills: Skill[];
 }>();
 
@@ -42,8 +42,8 @@ const getEffectClass = (effect: Effect): string => {
         @click="selectSkill(skill.id)"
       >
         <div class="card-body">
-          <h3 class="card-title">{{ skill.name }}</h3>
-          <div class="flex flex-wrap gap-2 mb-3">
+          <h3 class="text-sm">{{ skill.name }}</h3>
+          <div class="flex flex-wrap gap-2">
             <div v-for="(effect, index) in skill.effects" :key="index" class="badge badge-sm">
               <span class="font-medium">{{ getEffectLabel(effect) }}</span> 
               <span :class="getEffectClass(effect)">{{ effect.value }}</span>
@@ -54,7 +54,7 @@ const getEffectClass = (effect: Effect): string => {
               <span>{{ skill.cooldown }}回合</span>
             </div>
           </div>
-          <div class="text-xs mb-4">
+          <div class="text-xs">
             {{ skill.description }}
           </div>
           <div class="card-actions justify-end">

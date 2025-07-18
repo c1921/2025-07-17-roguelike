@@ -9,12 +9,12 @@ defineProps<{
 <template>
   <div class="card card-bordered shadow-sm">
     <div class="card-body">
-      <p class="card-title">战斗日志</p>
+      <p class="text-sm">战斗日志</p>
       <div class="h-40 overflow-y-auto flex flex-col">
         <div 
           v-for="(log, index) in logs" 
           :key="`${log.timestamp}-${index}`"
-          class="p-2 mb-1.5 rounded text-sm animate-fade-in"
+          class="p-2 rounded text-sm animate-fade-in"
           :class="{
             'bg-success/10 border-l-4 border-success': log.type === 'player',
             'bg-danger/10 border-l-4 border-danger': log.type === 'enemy',

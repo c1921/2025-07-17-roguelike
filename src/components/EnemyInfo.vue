@@ -9,10 +9,10 @@ defineProps<{
 <template>
   <div class="card card-bordered shadow-sm w-full">
     <div class="card-body">
-      <p class="card-title justify-center">{{ enemy.name }}</p>
+      <p class="text-sm justify-center">{{ enemy.name }}</p>
       <div class="space-y-2">
         <div>
-          <div class="flex justify-between mb-1">
+          <div class="flex justify-between">
             <span class="font-medium">生命值: {{ enemy.hp }}/{{ enemy.maxHp }}</span>
             <span class="text-sm">{{ Math.floor((enemy.hp / enemy.maxHp) * 100) }}%</span>
           </div>

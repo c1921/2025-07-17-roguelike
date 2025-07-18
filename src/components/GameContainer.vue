@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
-import { gameState, startGame, startNewFloor, startAutoBattle, executeBattleTurn, selectSkillReward, playerAction, enemyAction } from '../game/gameLogic';
+import { gameState, startGame, startNewFloor, startAutoBattle, selectSkillReward, playerAction, enemyAction } from '../game/gameLogic';
 import PlayerInfo from './PlayerInfo.vue';
 import EnemyInfo from './EnemyInfo.vue';
 import BattleLog from './BattleLog.vue';
@@ -138,8 +138,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="container mx-auto p-5">
-    <div class="text-center mb-5">
+  <div class="container mx-auto p-2">
+    <div class="text-center">
       <div class="text-lg mt-2">当前层数: {{ gameState.floor }}</div>
       <div v-if="gameState.isInBattle" class="text-md mt-1">
         回合: {{ gameState.turnCount + 1 }} | 
@@ -150,7 +150,7 @@ onUnmounted(() => {
     </div>
 
     <!-- 顶部：玩家和敌人信息 -->
-    <div class="flex flex-row gap-4 mb-5">
+    <div class="flex flex-row gap-4">
       <div class="w-1/2" :class="{'border-4 border-primary rounded-lg': gameState.currentTurn === 'player' && gameState.isInBattle}">
         <PlayerInfo :player="gameState.player" />
       </div>
@@ -167,7 +167,7 @@ onUnmounted(() => {
     </div>
 
     <!-- 中间：技能列表或游戏控制按钮 -->
-    <div class="mb-5">
+    <div class="mb-1">
       <div v-if="!gameState.isInBattle && gameState.availableSkillRewards.length === 0"
         class="flex flex-col items-center justify-center min-h-40">
         <button @click="handleStartGame" class="btn btn-primary px-8 py-3 text-lg">

@@ -8,7 +8,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen p-5">
+  <div class="min-h-screen">
     <GameContainer />
   </div>
 </template>
