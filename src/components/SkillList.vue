@@ -1,9 +1,27 @@
 <script setup lang="ts">
-import type { Skill } from '../types';
+import type { Skill, Effect } from '../types';
 
 defineProps<{
   skills: Skill[];
 }>();
+
+// 获取效果标签文本
+const getEffectLabel = (effect: Effect): string => {
+  switch (effect.type) {
+    case 'damage': return '伤害:';
+    case 'heal': return '治疗:';
+    default: return `${effect.type}:`;
+  }
+};
+
+// 获取效果CSS类
+const getEffectClass = (effect: Effect): string => {
+  switch (effect.type) {
+    case 'damage': return 'text-error';
+    case 'heal': return 'text-success';
+    default: return 'text-info';
+  }
+};
 </script>
 
 <template>
@@ -35,13 +53,14 @@ defineProps<{
               </span>
             </div>
           </div>
-          <div class="flex justify-between text-sm mb-1.5">
-            <div>
-              <span class="font-medium">伤害:</span> 
-              <span class="text-error">{{ skill.damage }}</span>
+          <div class="flex flex-wrap gap-2 text-sm mb-1.5">
+            <div v-for="(effect, index) in skill.effects" :key="index" class="badge badge-sm">
+              <span class="font-medium">{{ getEffectLabel(effect) }}</span> 
+              <span :class="getEffectClass(effect)">{{ effect.value }}</span>
+              <span v-if="effect.duration">({{ effect.duration }}回合)</span>
             </div>
             <div>
-              <span class="font-medium">冷却时间:</span> 
+              <span class="font-medium">冷却:</span> 
               <span>{{ skill.cooldown }} 回合</span>
             </div>
           </div>

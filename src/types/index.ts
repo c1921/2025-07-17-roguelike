@@ -1,7 +1,14 @@
+export interface Effect {
+  type: string;     // 效果类型：damage, heal, buff等
+  value: number;    // 效果数值
+  duration?: number; // 效果持续时间（可选，用于持续效果）
+  target?: string;  // 效果目标（可选，如self, enemy, all等）
+}
+
 export interface Skill {
   id: string;
   name: string;
-  damage: number;
+  effects: Effect[];  // 一个技能可以有多个效果
   cooldown: number;
   currentCooldown: number;
   description: string;

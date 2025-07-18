@@ -138,7 +138,7 @@ onUnmounted(() => {
     <div class="text-center mb-5">
       <div class="text-lg mt-2">当前层数: {{ gameState.floor }}</div>
     </div>
-    
+
     <!-- 顶部：玩家和敌人信息 -->
     <div class="flex flex-row gap-4 mb-5">
       <div class="w-1/2">
@@ -155,83 +155,73 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-    
+
     <!-- 中间：技能列表或游戏控制按钮 -->
     <div class="mb-5">
-      <div v-if="!gameState.isInBattle && gameState.availableSkillRewards.length === 0" class="flex flex-col items-center justify-center min-h-40">
+      <div v-if="!gameState.isInBattle && gameState.availableSkillRewards.length === 0"
+        class="flex flex-col items-center justify-center min-h-40">
         <button @click="handleStartGame" class="btn btn-primary px-8 py-3 text-lg">
           开始新游戏
         </button>
-        
-        <button 
-          v-if="gameState.floor > 0" 
-          @click="handleNextFloor" 
-          class="btn btn-success mt-5 px-8 py-3 text-lg"
-        >
+
+        <button v-if="gameState.floor > 0" @click="handleNextFloor" class="btn btn-success mt-5 px-8 py-3 text-lg">
           进入下一层
         </button>
       </div>
       <div v-else>
         <SkillList :skills="gameState.player.skills" />
-        
+
         <div class="flex justify-center mt-5" v-if="gameState.isInBattle">
           <div class="join">
-            <button 
-              @click="handleExecuteTurn" 
-              :disabled="autoBattleIntervalId !== null"
-              class="btn btn-primary join-item"
-              :class="{'btn-disabled': autoBattleIntervalId !== null}"
-            >
+            <button @click="handleExecuteTurn" :disabled="autoBattleIntervalId !== null"
+              class="btn btn-primary join-item" :class="{'btn-disabled': autoBattleIntervalId !== null}">
               执行回合
             </button>
-            <button 
-              @click="handleStartAutoBattle"
-              class="btn join-item"
-              :class="autoBattleIntervalId !== null ? 'btn-error' : 'btn-success'"
-            >
+            <button @click="handleStartAutoBattle" class="btn join-item"
+              :class="autoBattleIntervalId !== null ? 'btn-error' : 'btn-success'">
               {{ autoBattleIntervalId !== null ? '停止自动战斗' : '开始自动战斗' }}
             </button>
           </div>
         </div>
       </div>
     </div>
-    
+
     <!-- 返回按钮 - 当模态框隐藏且有技能奖励时显示 -->
     <div v-if="isModalHidden && gameState.availableSkillRewards.length > 0" class="flex justify-center mt-5">
       <button @click="showModal" class="btn btn-info px-8 py-3 text-lg">
         返回选择技能
       </button>
     </div>
-    
+
     <!-- 底部：战斗日志 -->
     <div>
       <BattleLog :logs="gameState.battleLogs" />
     </div>
-    
+
     <!-- 模态框触发按钮 (隐藏) -->
     <button id="open-modal-btn" type="button" class="hidden" data-overlay="#skill-rewards-modal">
       打开模态框
     </button>
-    
+
     <!-- 技能奖励模态框 -->
-    <div id="skill-rewards-modal" class="overlay modal overlay-open:opacity-100 overlay-open:duration-300 hidden" role="dialog" tabindex="-1">
+    <div id="skill-rewards-modal"
+      class="overlay modal overlay-open:opacity-100 overlay-open:duration-300 hidden [--overlay-backdrop:static]"
+      role="dialog" tabindex="-1">
       <div class="modal-dialog modal-dialog-lg">
         <div class="modal-content">
           <div class="modal-header">
             <h3 class="modal-title">选择一个新技能</h3>
-            <button type="button" class="btn btn-text btn-circle btn-sm absolute end-3 top-3" 
-                    aria-label="Close" data-overlay="#skill-rewards-modal" @click="isModalHidden = true">
+            <button type="button" class="btn btn-text btn-circle btn-sm absolute end-3 top-3" aria-label="Close"
+              data-overlay="#skill-rewards-modal" @click="isModalHidden = true">
               <span class="icon-[tabler--x] size-4">×</span>
             </button>
           </div>
           <div class="modal-body">
-            <SkillRewards 
-              :skills="gameState.availableSkillRewards" 
-              @select="handleSelectSkill" 
-            />
+            <SkillRewards :skills="gameState.availableSkillRewards" @select="handleSelectSkill" />
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-soft btn-secondary" data-overlay="#skill-rewards-modal" @click="isModalHidden = true">
+            <button type="button" class="btn btn-soft btn-secondary" data-overlay="#skill-rewards-modal"
+              @click="isModalHidden = true">
               暂时关闭
             </button>
             <button type="button" class="btn btn-primary" @click="handleSkipSelection">

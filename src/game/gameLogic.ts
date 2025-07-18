@@ -1,7 +1,8 @@
-import { ref, reactive } from 'vue';
-import type { GameState, Player, Enemy, Skill, BattleLog } from '../types';
+import { reactive } from 'vue';
+import type { GameState } from '../types';
 import { generateEnemy } from './enemyGenerator';
 import { generateSkillReward } from './skillGenerator';
+import { processSkillEffect, generateEffectLog } from './effectProcessor';
 
 // 初始化游戏状态
 const gameState = reactive<GameState>({
@@ -12,10 +13,22 @@ const gameState = reactive<GameState>({
       {
         id: 'basic-attack',
         name: '基本攻击',
-        damage: 10,
+        effects: [
+          { type: 'damage', value: 10 }
+        ],
         cooldown: 0,
         currentCooldown: 0,
         description: '一次基本攻击，造成10点伤害'
+      },
+      {
+        id: 'healing-light',
+        name: '治疗之光',
+        effects: [
+          { type: 'heal', value: 15, target: 'self' }
+        ],
+        cooldown: 3,
+        currentCooldown: 0,
+        description: '恢复15点生命值，冷却时间3回合'
       }
     ],
     lastUsedSkillIndex: -1 // 记录上一次使用的技能索引
@@ -63,7 +76,7 @@ const battleTick = () => {
   if (!gameState.isInBattle || !gameState.currentEnemy) return;
   
   // 玩家回合
-  let playerDealtDamage = false;
+  let skillUsed = false;
   
   // 循环使用技能，从上一次使用的技能的下一个开始
   const skillsCount = gameState.player.skills.length;
@@ -75,12 +88,25 @@ const battleTick = () => {
     
     if (skill.currentCooldown <= 0) {
       // 使用技能
-      gameState.currentEnemy.hp -= skill.damage;
-      addBattleLog(`你使用了 ${skill.name}，对 ${gameState.currentEnemy.name} 造成了 ${skill.damage} 点伤害！`, 'player');
+      processSkillEffect(gameState, skill);
+      
+      // 生成效果日志
+      const effectLogs: string[] = [];
+      
+      for (const effect of skill.effects) {
+        if (effect.type === 'damage') {
+          effectLogs.push(generateEffectLog(effect, gameState.currentEnemy.name));
+        } else {
+          effectLogs.push(generateEffectLog(effect));
+        }
+      }
+      
+      // 添加战斗日志
+      addBattleLog(`你使用了 ${skill.name}，${effectLogs.join('，')}！`, 'player');
       
       // 设置冷却
       skill.currentCooldown = skill.cooldown;
-      playerDealtDamage = true;
+      skillUsed = true;
       
       // 更新上一次使用的技能索引
       gameState.player.lastUsedSkillIndex = currentIndex;
@@ -89,10 +115,10 @@ const battleTick = () => {
     
     // 尝试下一个技能
     currentIndex = (currentIndex + 1) % skillsCount;
-  } while (currentIndex !== startIndex && !playerDealtDamage);
+  } while (currentIndex !== startIndex && !skillUsed);
   
   // 如果没有技能可用，跳过回合
-  if (!playerDealtDamage) {
+  if (!skillUsed) {
     addBattleLog('你没有可用的技能，跳过回合！', 'player');
   }
   
@@ -154,10 +180,22 @@ const resetGame = () => {
     {
       id: 'basic-attack',
       name: '基本攻击',
-      damage: 10,
+      effects: [
+        { type: 'damage', value: 10 }
+      ],
       cooldown: 0,
       currentCooldown: 0,
       description: '一次基本攻击，造成10点伤害'
+    },
+    {
+      id: 'healing-light',
+      name: '治疗之光',
+      effects: [
+        { type: 'heal', value: 15, target: 'self' }
+      ],
+      cooldown: 3,
+      currentCooldown: 0,
+      description: '恢复15点生命值，冷却时间3回合'
     }
   ];
   gameState.player.lastUsedSkillIndex = -1; // 重置上一次使用的技能索引

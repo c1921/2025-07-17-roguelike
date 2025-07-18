@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Skill } from '../types';
+import type { Skill, Effect } from '../types';
 
 const props = defineProps<{
   skills: Skill[];
@@ -11,6 +11,24 @@ const emit = defineEmits<{
 
 const selectSkill = (skillId: string) => {
   emit('select', skillId);
+};
+
+// 获取效果标签文本
+const getEffectLabel = (effect: Effect): string => {
+  switch (effect.type) {
+    case 'damage': return '伤害:';
+    case 'heal': return '治疗:';
+    default: return `${effect.type}:`;
+  }
+};
+
+// 获取效果CSS类
+const getEffectClass = (effect: Effect): string => {
+  switch (effect.type) {
+    case 'damage': return 'text-error';
+    case 'heal': return 'text-success';
+    default: return 'text-info';
+  }
 };
 </script>
 
@@ -25,12 +43,13 @@ const selectSkill = (skillId: string) => {
       >
         <div class="card-body">
           <h3 class="card-title">{{ skill.name }}</h3>
-          <div class="flex justify-between text-sm mb-3">
-            <div>
-              <span class="font-medium">伤害:</span> 
-              <span class="text-error">{{ skill.damage }}</span>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <div v-for="(effect, index) in skill.effects" :key="index" class="badge badge-sm">
+              <span class="font-medium">{{ getEffectLabel(effect) }}</span> 
+              <span :class="getEffectClass(effect)">{{ effect.value }}</span>
+              <span v-if="effect.duration">({{ effect.duration }}回合)</span>
             </div>
-            <div>
+            <div class="badge badge-sm">
               <span class="font-medium">冷却:</span> 
               <span>{{ skill.cooldown }}回合</span>
             </div>
