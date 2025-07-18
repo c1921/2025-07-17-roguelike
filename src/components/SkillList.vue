@@ -9,8 +9,8 @@ defineProps<{
 <template>
   <div class="card card-bordered shadow-sm">
     <div class="card-body">
-      <h2 class="card-title">技能列表</h2>
-      <div class="flex flex-col gap-2 max-h-96 overflow-y-auto pr-1">
+      <p class="card-title">技能列表</p>
+      <div class="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
         <div 
           v-for="skill in skills" 
           :key="skill.id"

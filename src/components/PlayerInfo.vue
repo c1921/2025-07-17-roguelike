@@ -7,10 +7,10 @@ defineProps<{
 </script>
 
 <template>
-  <div class="card card-bordered shadow-sm mb-5">
+  <div class="card card-bordered shadow-sm">
     <div class="card-body">
-      <h2 class="card-title">玩家信息</h2>
-      <div class="mb-3">
+      <p class="card-title">玩家信息</p>
+      <div>
         <div class="flex justify-between mb-1">
           <span class="font-medium">生命值: {{ player.hp }}/{{ player.maxHp }}</span>
           <span class="text-sm">{{ Math.floor((player.hp / player.maxHp) * 100) }}%</span>

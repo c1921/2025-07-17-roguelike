@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { gameState, startGame, startNewFloor, startAutoBattle, executeBattleTurn, selectSkillReward } from '../game/gameLogic';
 import PlayerInfo from './PlayerInfo.vue';
 import EnemyInfo from './EnemyInfo.vue';
@@ -9,6 +9,12 @@ import SkillRewards from './SkillRewards.vue';
 
 // 自动战斗的间隔ID
 const autoBattleIntervalId = ref<number | null>(null);
+
+// 模态框ID
+const modalId = 'skill-rewards-modal';
+
+// 控制模态框显示状态和返回按钮显示
+const isModalHidden = ref(true);
 
 // 开始自动战斗
 const handleStartAutoBattle = () => {
@@ -33,7 +39,22 @@ const handleExecuteTurn = () => {
 const handleSelectSkill = (skillId: string) => {
   selectSkillReward(skillId);
   
+  // 隐藏模态框
+  hideModal();
+  
   // 自动进入下一层
+  handleNextFloor();
+};
+
+// 跳过选择技能，直接进入下一层
+const handleSkipSelection = () => {
+  // 清空技能奖励列表，确保模态框不会再次显示
+  gameState.availableSkillRewards = [];
+  
+  // 隐藏模态框
+  hideModal();
+  
+  // 进入下一层
   handleNextFloor();
 };
 
@@ -70,6 +91,35 @@ const handleStartGame = () => {
   startGame();
 };
 
+// 显示模态框
+const showModal = () => {
+  nextTick(() => {
+    const openButton = document.getElementById('open-modal-btn');
+    if (openButton) {
+      openButton.click();
+      isModalHidden.value = false;
+    }
+  });
+};
+
+// 隐藏模态框
+const hideModal = () => {
+  nextTick(() => {
+    const closeButton = document.querySelector(`button[data-overlay="#${modalId}"]`);
+    if (closeButton) {
+      (closeButton as HTMLElement).click();
+      isModalHidden.value = true;
+    }
+  });
+};
+
+// 监听游戏状态变化，当有奖励技能时自动打开模态框
+watch(() => gameState.availableSkillRewards.length, (newLength) => {
+  if (newLength > 0) {
+    showModal();
+  }
+});
+
 // 组件挂载时开始游戏
 onMounted(() => {
   startGame();
@@ -89,17 +139,43 @@ onUnmounted(() => {
       <div class="text-lg mt-2">当前层数: {{ gameState.floor }}</div>
     </div>
     
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
-      <div class="md:col-span-1">
+    <!-- 顶部：玩家和敌人信息 -->
+    <div class="flex flex-row gap-4 mb-5">
+      <div class="w-1/2">
         <PlayerInfo :player="gameState.player" />
-        <SkillList :skills="gameState.player.skills" />
       </div>
-      
-      <div class="md:col-span-2">
-        <div v-if="gameState.isInBattle && gameState.currentEnemy" class="flex flex-col items-center">
+      <div class="w-1/2">
+        <div v-if="gameState.isInBattle && gameState.currentEnemy">
           <EnemyInfo :enemy="gameState.currentEnemy" />
-          
-          <div class="join mt-5">
+        </div>
+        <div v-else class="card card-bordered shadow-sm h-full">
+          <div class="card-body flex items-center justify-center">
+            <p class="text-center text-gray-500">等待下一个敌人...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 中间：技能列表或游戏控制按钮 -->
+    <div class="mb-5">
+      <div v-if="!gameState.isInBattle && gameState.availableSkillRewards.length === 0" class="flex flex-col items-center justify-center min-h-40">
+        <button @click="handleStartGame" class="btn btn-primary px-8 py-3 text-lg">
+          开始新游戏
+        </button>
+        
+        <button 
+          v-if="gameState.floor > 0" 
+          @click="handleNextFloor" 
+          class="btn btn-success mt-5 px-8 py-3 text-lg"
+        >
+          进入下一层
+        </button>
+      </div>
+      <div v-else>
+        <SkillList :skills="gameState.player.skills" />
+        
+        <div class="flex justify-center mt-5" v-if="gameState.isInBattle">
+          <div class="join">
             <button 
               @click="handleExecuteTurn" 
               :disabled="autoBattleIntervalId !== null"
@@ -117,40 +193,52 @@ onUnmounted(() => {
             </button>
           </div>
         </div>
-        
-        <div v-else-if="gameState.availableSkillRewards.length > 0" class="flex flex-col items-center">
-          <div class="card card-bordered shadow-sm w-full mb-5">
-            <div class="card-body">
-              <h2 class="card-title justify-center">选择一个新技能</h2>
-            </div>
-          </div>
-          <SkillRewards 
-            :skills="gameState.availableSkillRewards" 
-            @select="handleSelectSkill" 
-          />
-          
-          <button @click="handleNextFloor" class="btn btn-primary mt-5 px-8 py-3 text-lg">
-            进入下一层
-          </button>
-        </div>
-        
-        <div v-else class="flex flex-col items-center justify-center min-h-80">
-          <button @click="handleStartGame" class="btn btn-primary px-8 py-3 text-lg">
-            开始新游戏
-          </button>
-          
-          <button 
-            v-if="gameState.floor > 0" 
-            @click="handleNextFloor" 
-            class="btn btn-success mt-5 px-8 py-3 text-lg"
-          >
-            进入下一层
-          </button>
-        </div>
       </div>
-      
-      <div class="md:col-span-1">
-        <BattleLog :logs="gameState.battleLogs" />
+    </div>
+    
+    <!-- 返回按钮 - 当模态框隐藏且有技能奖励时显示 -->
+    <div v-if="isModalHidden && gameState.availableSkillRewards.length > 0" class="flex justify-center mt-5">
+      <button @click="showModal" class="btn btn-info px-8 py-3 text-lg">
+        返回选择技能
+      </button>
+    </div>
+    
+    <!-- 底部：战斗日志 -->
+    <div>
+      <BattleLog :logs="gameState.battleLogs" />
+    </div>
+    
+    <!-- 模态框触发按钮 (隐藏) -->
+    <button id="open-modal-btn" type="button" class="hidden" data-overlay="#skill-rewards-modal">
+      打开模态框
+    </button>
+    
+    <!-- 技能奖励模态框 -->
+    <div id="skill-rewards-modal" class="overlay modal overlay-open:opacity-100 overlay-open:duration-300 hidden" role="dialog" tabindex="-1">
+      <div class="modal-dialog modal-dialog-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title">选择一个新技能</h3>
+            <button type="button" class="btn btn-text btn-circle btn-sm absolute end-3 top-3" 
+                    aria-label="Close" data-overlay="#skill-rewards-modal" @click="isModalHidden = true">
+              <span class="icon-[tabler--x] size-4">×</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <SkillRewards 
+              :skills="gameState.availableSkillRewards" 
+              @select="handleSelectSkill" 
+            />
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-soft btn-secondary" data-overlay="#skill-rewards-modal" @click="isModalHidden = true">
+              暂时关闭
+            </button>
+            <button type="button" class="btn btn-primary" @click="handleSkipSelection">
+              跳过此次选择
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
