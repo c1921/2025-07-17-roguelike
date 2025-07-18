@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, watch, nextTick } from 'vue';
-import { gameState, startGame, startNewFloor, startAutoBattle, executeBattleTurn, selectSkillReward } from '../game/gameLogic';
+import { gameState, startGame, startNewFloor, startAutoBattle, executeBattleTurn, selectSkillReward, playerAction, enemyAction } from '../game/gameLogic';
 import PlayerInfo from './PlayerInfo.vue';
 import EnemyInfo from './EnemyInfo.vue';
 import BattleLog from './BattleLog.vue';
@@ -30,9 +30,13 @@ const handleStartAutoBattle = () => {
   }
 };
 
-// 执行单次战斗回合
+// 执行单次行动（根据当前回合决定是玩家行动还是敌人行动）
 const handleExecuteTurn = () => {
-  executeBattleTurn();
+  if (gameState.currentTurn === 'player') {
+    playerAction();
+  } else {
+    enemyAction();
+  }
 };
 
 // 选择技能奖励
@@ -137,14 +141,20 @@ onUnmounted(() => {
   <div class="container mx-auto p-5">
     <div class="text-center mb-5">
       <div class="text-lg mt-2">当前层数: {{ gameState.floor }}</div>
+      <div v-if="gameState.isInBattle" class="text-md mt-1">
+        回合: {{ gameState.turnCount + 1 }} | 
+        <span :class="{'text-primary font-bold': gameState.currentTurn === 'player', 'text-error': gameState.currentTurn === 'enemy'}">
+          {{ gameState.currentTurn === 'player' ? '玩家行动' : '敌人行动' }}
+        </span>
+      </div>
     </div>
 
     <!-- 顶部：玩家和敌人信息 -->
     <div class="flex flex-row gap-4 mb-5">
-      <div class="w-1/2">
+      <div class="w-1/2" :class="{'border-4 border-primary rounded-lg': gameState.currentTurn === 'player' && gameState.isInBattle}">
         <PlayerInfo :player="gameState.player" />
       </div>
-      <div class="w-1/2">
+      <div class="w-1/2" :class="{'border-4 border-error rounded-lg': gameState.currentTurn === 'enemy' && gameState.isInBattle}">
         <div v-if="gameState.isInBattle && gameState.currentEnemy">
           <EnemyInfo :enemy="gameState.currentEnemy" />
         </div>
@@ -174,8 +184,13 @@ onUnmounted(() => {
         <div class="flex justify-center mt-5" v-if="gameState.isInBattle">
           <div class="join">
             <button @click="handleExecuteTurn" :disabled="autoBattleIntervalId !== null"
-              class="btn btn-primary join-item" :class="{'btn-disabled': autoBattleIntervalId !== null}">
-              执行回合
+              class="btn join-item" 
+              :class="{
+                'btn-primary': gameState.currentTurn === 'player',
+                'btn-error': gameState.currentTurn === 'enemy',
+                'btn-disabled': autoBattleIntervalId !== null
+              }">
+              {{ gameState.currentTurn === 'player' ? '玩家行动' : '敌人行动' }}
             </button>
             <button @click="handleStartAutoBattle" class="btn join-item"
               :class="autoBattleIntervalId !== null ? 'btn-error' : 'btn-success'">

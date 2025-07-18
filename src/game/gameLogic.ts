@@ -37,7 +37,9 @@ const gameState = reactive<GameState>({
   battleLogs: [],
   floor: 1,
   isInBattle: false,
-  availableSkillRewards: []
+  availableSkillRewards: [],
+  currentTurn: 'player', // 默认玩家先行动
+  turnCount: 0
 });
 
 // 添加战斗日志
@@ -68,14 +70,42 @@ const startNewFloor = () => {
   // 重置上一次使用的技能索引
   gameState.player.lastUsedSkillIndex = -1;
   
+  // 重置回合状态
+  gameState.currentTurn = 'player';
+  gameState.turnCount = 0;
+  
   addBattleLog(`进入第 ${gameState.floor} 层，遇到了 ${gameState.currentEnemy.name}！`, 'system');
+  addBattleLog('你的回合开始了！', 'system');
 };
 
-// 自动战斗回合
-const battleTick = () => {
-  if (!gameState.isInBattle || !gameState.currentEnemy) return;
+// 切换回合
+const switchTurn = () => {
+  if (gameState.currentTurn === 'player') {
+    setTimeout(() => {
+      gameState.currentTurn = 'enemy';
+      addBattleLog(`${gameState.currentEnemy!.name}的回合开始了！`, 'system');
+    }, 500);
+  } else {
+    setTimeout(() => {
+      gameState.currentTurn = 'player';
+      gameState.turnCount++; // 每当玩家回合开始时增加回合计数
+      
+      // 减少所有技能的冷却时间
+      gameState.player.skills.forEach(skill => {
+        if (skill.currentCooldown > 0) {
+          skill.currentCooldown -= 1;
+        }
+      });
+      
+      addBattleLog('你的回合开始了！', 'system');
+    }, 500);
+  }
+};
+
+// 玩家行动
+const playerAction = () => {
+  if (!gameState.isInBattle || !gameState.currentEnemy || gameState.currentTurn !== 'player') return false;
   
-  // 玩家回合
   let skillUsed = false;
   
   // 循环使用技能，从上一次使用的技能的下一个开始
@@ -126,10 +156,19 @@ const battleTick = () => {
   if (gameState.currentEnemy.hp <= 0) {
     addBattleLog(`你击败了 ${gameState.currentEnemy.name}！`, 'system');
     endBattle(true);
-    return;
+    return true;
   }
   
-  // 敌人回合
+  // 切换到敌人回合
+  switchTurn();
+  return true;
+};
+
+// 敌人行动
+const enemyAction = () => {
+  if (!gameState.isInBattle || !gameState.currentEnemy || gameState.currentTurn !== 'enemy') return false;
+  
+  // 敌人攻击
   const enemyDamage = gameState.currentEnemy.damage;
   gameState.player.hp -= enemyDamage;
   addBattleLog(`${gameState.currentEnemy.name} 攻击了你，造成了 ${enemyDamage} 点伤害！`, 'enemy');
@@ -138,15 +177,24 @@ const battleTick = () => {
   if (gameState.player.hp <= 0) {
     addBattleLog('你被击败了！游戏结束！', 'system');
     endBattle(false);
-    return;
+    return true;
   }
   
-  // 减少所有技能的冷却时间
-  gameState.player.skills.forEach(skill => {
-    if (skill.currentCooldown > 0) {
-      skill.currentCooldown -= 1;
-    }
-  });
+  // 切换到玩家回合
+  switchTurn();
+  return true;
+};
+
+// 自动战斗回合
+const battleTick = () => {
+  if (!gameState.isInBattle) return;
+  
+  // 检查当前回合，执行相应的行动
+  if (gameState.currentTurn === 'player') {
+    playerAction();
+  } else if (gameState.currentTurn === 'enemy') {
+    enemyAction();
+  }
 };
 
 // 结束战斗
@@ -204,6 +252,8 @@ const resetGame = () => {
   gameState.floor = 0;
   gameState.isInBattle = false;
   gameState.availableSkillRewards = [];
+  gameState.currentTurn = 'player';
+  gameState.turnCount = 0;
   
   addBattleLog('新的冒险开始了！', 'system');
 };
@@ -223,8 +273,14 @@ const startAutoBattle = () => {
       clearInterval(interval);
       return;
     }
-    battleTick();
-  }, 1000);
+    
+    // 检查当前回合，执行相应的行动
+    if (gameState.currentTurn === 'player') {
+      playerAction();
+    } else if (gameState.currentTurn === 'enemy') {
+      enemyAction();
+    }
+  }, 1000); // 每秒检查一次
   
   return interval;
 };
@@ -243,5 +299,7 @@ export {
   startAutoBattle,
   executeBattleTurn,
   selectSkillReward,
-  resetGame
+  resetGame,
+  playerAction,
+  enemyAction
 }; 

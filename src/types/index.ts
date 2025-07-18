@@ -45,4 +45,6 @@ export interface GameState {
   floor: number;
   isInBattle: boolean;
   availableSkillRewards: Skill[];
+  currentTurn: 'player' | 'enemy'; // 当前是谁的回合
+  turnCount: number; // 回合计数器
 } 
