@@ -7,8 +7,8 @@ defineProps<{
 </script>
 
 <template>
-  <div class="card card-bordered shadow-sm">
-    <div class="card-body">
+  <div class="">
+    <div class="">
       <p class="text-sm">玩家信息</p>
       <div>
         <div class="flex justify-between">

@@ -7,10 +7,10 @@ defineProps<{
 </script>
 
 <template>
-  <div class="card card-bordered shadow-sm">
-    <div class="card-body">
+  <div class="">
+    <div class="">
       <p class="text-sm">战斗日志</p>
-      <div class="h-40 overflow-y-auto flex flex-col">
+      <div class="h-80 overflow-y-auto flex flex-col">
         <div 
           v-for="(log, index) in logs" 
           :key="`${log.timestamp}-${index}`"

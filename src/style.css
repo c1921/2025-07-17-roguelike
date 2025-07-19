@@ -1,5 +1,7 @@
 @import "tailwindcss";
-@plugin "flyonui";
+@plugin "flyonui" {
+    themes: light --default, dark --prefersdark, black;
+}
 @import "flyonui/variants.css";
 @source "../node_modules/flyonui/flyonui.js";
 @plugin "@iconify/tailwind4";
@@ -13,3 +15,8 @@
 /* @import "flyonui/src/vendor/raty.css"; */
 /* @import "flyonui/src/vendor/waves.css"; */
 /* @import "flyonui/src/vendor/apexcharts.css"; */
+
+.masked-text * {
+    color: transparent !important;
+    text-shadow: 0 0 6px rgba(206, 206, 206, 0.3) !important;
+}

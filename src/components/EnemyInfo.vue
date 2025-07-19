@@ -7,8 +7,8 @@ defineProps<{
 </script>
 
 <template>
-  <div class="card card-bordered shadow-sm w-full">
-    <div class="card-body">
+  <div class="">
+    <div class="">
       <p class="text-sm justify-center">{{ enemy.name }}</p>
       <div class="space-y-2">
         <div>

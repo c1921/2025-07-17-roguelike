@@ -16,6 +16,19 @@ const modalId = 'skill-rewards-modal';
 // 控制模态框显示状态和返回按钮显示
 const isModalHidden = ref(true);
 
+// 控制是否启用遮罩文字效果
+const isMaskedTextEnabled = ref(false);
+
+// 切换遮罩文字效果
+const toggleMaskedText = () => {
+  isMaskedTextEnabled.value = !isMaskedTextEnabled.value;
+  if (isMaskedTextEnabled.value) {
+    document.body.classList.add('masked-text');
+  } else {
+    document.body.classList.remove('masked-text');
+  }
+};
+
 // 开始自动战斗
 const handleStartAutoBattle = () => {
   if (autoBattleIntervalId.value) {
@@ -139,22 +152,25 @@ onUnmounted(() => {
 
 <template>
   <div class="container mx-auto p-2">
-    <div class="text-center">
-      <div class="text-lg mt-2">当前层数: {{ gameState.floor }}</div>
-      <div v-if="gameState.isInBattle" class="text-md mt-1">
-        回合: {{ gameState.turnCount + 1 }} | 
-        <span :class="{'text-primary font-bold': gameState.currentTurn === 'player', 'text-error': gameState.currentTurn === 'enemy'}">
+    <div class="flex justify-between items-center mt-2 mb-2">
+      <div class="text-lg">当前层数: {{ gameState.floor }}</div>
+      <div v-if="gameState.isInBattle" class="text-md">
+        回合: {{ gameState.turnCount + 1 }} |
+        <span
+          :class="{'text-primary font-bold': gameState.currentTurn === 'player', 'text-error': gameState.currentTurn === 'enemy'}">
           {{ gameState.currentTurn === 'player' ? '玩家行动' : '敌人行动' }}
         </span>
       </div>
     </div>
 
     <!-- 顶部：玩家和敌人信息 -->
-    <div class="flex flex-row gap-4">
-      <div class="w-1/2" :class="{'border-4 border-primary rounded-lg': gameState.currentTurn === 'player' && gameState.isInBattle}">
+    <div class="flex flex-row gap-1 mt-2">
+      <div class="w-1/2 p-2"
+        :class="{'bg-base-200 rounded-box': gameState.currentTurn === 'player' && gameState.isInBattle}">
         <PlayerInfo :player="gameState.player" />
       </div>
-      <div class="w-1/2" :class="{'border-4 border-error rounded-lg': gameState.currentTurn === 'enemy' && gameState.isInBattle}">
+      <div class="w-1/2 p-2"
+        :class="{'bg-base-200 rounded-box': gameState.currentTurn === 'enemy' && gameState.isInBattle}">
         <div v-if="gameState.isInBattle && gameState.currentEnemy">
           <EnemyInfo :enemy="gameState.currentEnemy" />
         </div>
@@ -167,6 +183,24 @@ onUnmounted(() => {
     </div>
 
     <!-- 中间：技能列表或游戏控制按钮 -->
+    <div class="flex justify-center mt-2" v-if="gameState.isInBattle">
+      <div class="join">
+        <button @click="handleExecuteTurn" :disabled="autoBattleIntervalId !== null" class="btn btn-xs join-item"
+          :class="{
+            'btn-primary': gameState.currentTurn === 'player',
+            'btn-error': gameState.currentTurn === 'enemy',
+            'btn-disabled': autoBattleIntervalId !== null
+          }">
+          {{ gameState.currentTurn === 'player' ? '玩家行动' : '敌人行动' }}
+        </button>
+        <button @click="handleStartAutoBattle" class="btn btn-xs join-item"
+          :class="autoBattleIntervalId !== null ? 'btn-error' : 'btn-success'">
+          {{ autoBattleIntervalId !== null ? '停止自动战斗' : '开始自动战斗' }}
+        </button>
+      </div>
+    </div>
+
+
     <div class="mb-1">
       <div v-if="!gameState.isInBattle && gameState.availableSkillRewards.length === 0"
         class="flex flex-col items-center justify-center min-h-40">
@@ -181,23 +215,8 @@ onUnmounted(() => {
       <div v-else>
         <SkillList :skills="gameState.player.skills" />
 
-        <div class="flex justify-center mt-5" v-if="gameState.isInBattle">
-          <div class="join">
-            <button @click="handleExecuteTurn" :disabled="autoBattleIntervalId !== null"
-              class="btn join-item" 
-              :class="{
-                'btn-primary': gameState.currentTurn === 'player',
-                'btn-error': gameState.currentTurn === 'enemy',
-                'btn-disabled': autoBattleIntervalId !== null
-              }">
-              {{ gameState.currentTurn === 'player' ? '玩家行动' : '敌人行动' }}
-            </button>
-            <button @click="handleStartAutoBattle" class="btn join-item"
-              :class="autoBattleIntervalId !== null ? 'btn-error' : 'btn-success'">
-              {{ autoBattleIntervalId !== null ? '停止自动战斗' : '开始自动战斗' }}
-            </button>
-          </div>
-        </div>
+
+
       </div>
     </div>
 
@@ -211,6 +230,14 @@ onUnmounted(() => {
     <!-- 底部：战斗日志 -->
     <div>
       <BattleLog :logs="gameState.battleLogs" />
+    </div>
+    
+    <!-- 左下角：遮罩文字控制按钮 -->
+    <div class="fixed bottom-4 left-4">
+      <button @click="toggleMaskedText" class="btn btn-circle btn-sm" :class="{'btn-primary': isMaskedTextEnabled, 'btn-outline': !isMaskedTextEnabled}">
+        <span v-if="isMaskedTextEnabled" class="icon-[tabler--eye-closed] size-5"></span>
+        <span v-else class="icon-[tabler--eye] size-5"></span>
+      </button>
     </div>
 
     <!-- 模态框触发按钮 (隐藏) -->

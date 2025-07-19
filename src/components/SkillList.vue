@@ -25,8 +25,8 @@ const getEffectClass = (effect: Effect): string => {
 </script>
 
 <template>
-  <div class="card card-bordered shadow-sm">
-    <div class="card-body">
+  <div class="">
+    <div class="">
       <p class="text-sm">技能列表</p>
       <div class="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
         <div 
